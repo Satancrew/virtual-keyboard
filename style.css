@@ -73,8 +73,19 @@ body {
       transform: translateY(4px); 
     }
 
+    .button-keyboard-active {
+        box-shadow: 0 0 1px #888,0 1px 0 #fff, 0 0 0 #C0C0C0, 0 0px 30px rgba(#444, 0.15), 2px 2px 4px rgba(#444, 0.25), -2px 2px 4px rgba(#444, 0.25), 0 0px 4px rgba(#444, 0.25);
+        transform: translateY(4px); 
+    }
+
     .button-keyboard-special {
         width: 100px;
         background: -webkit-linear-gradient(top, #555555 0%, #D2D3E9 0%, #C0C0C1 100%);
+    }
+
+    .description {
+        font-size: 20px;
+        text-align: center;
+        font-family: sans-serif;
     }
  
