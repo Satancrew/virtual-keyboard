@@ -77,10 +77,10 @@ const KEYS_BUTTON = [
     { key: 'MetaLeft', type: 'service', valueEn: 'Win', shiftValueEn: 'Win', valueRu: 'Win', shiftValueRu: 'Win' },
     { key: 'AltLeft', type: 'service', valueEn: 'Alt', shiftValueEn: 'Alt', valueRu: 'Alt', shiftValueRu: 'Alt' },
     { key: 'Space', type: 'service', valueEn: '', shiftValueEn: '', valueRu: '', shiftValueRu: '' },
-    { key: 'AltRight', type: 'service', valueEn: 'Alt', shiftValueEn: 'Alt', valueRu: 'Alt', shiftValueRu: 'Alt' },
-    { key: 'ArrowLeft', type: 'service', valueEn: '←', shiftValueEn: '←', valueRu: '←', shiftValueRu: '←' },
-    { key: 'ArrowDown', type: 'service', valueEn: '↓', shiftValueEn: '↓', valueRu: '↓', shiftValueRu: '↓' },
-    { key: 'ArrowRight', type: 'service', valueEn: '→', shiftValueEn: '→', valueRu: '→', shiftValueRu: '→' },
+    { key: 'AltRight', type: 'letter', valueEn: 'Alt', shiftValueEn: 'Alt', valueRu: 'Alt', shiftValueRu: 'Alt' },
+    { key: 'ArrowLeft', type: 'letter', valueEn: '←', shiftValueEn: '←', valueRu: '←', shiftValueRu: '←' },
+    { key: 'ArrowDown', type: 'letter', valueEn: '↓', shiftValueEn: '↓', valueRu: '↓', shiftValueRu: '↓' },
+    { key: 'ArrowRight', type: 'letter', valueEn: '→', shiftValueEn: '→', valueRu: '→', shiftValueRu: '→' },
     { key: 'ControlRight', type: 'service', valueEn: 'Ctrl', shiftValueEn: 'Ctrl', valueRu: 'Ctrl', shiftValueRu: 'Ctrl'},
 ];
 
@@ -100,7 +100,7 @@ function startPage() {
 
     let description = document.createElement('div');
     description.classList.add('description');
-    description.innerHTML += 'Для смены языка нужно сделать неизвестно что.';
+    description.innerHTML += 'Для смены языка зажмите левые Ctrl и Alt.';
 
     for (let i = 0; i < 64; i++) {
 
@@ -165,74 +165,198 @@ startPage();
 
 // Метки с флагами языка, капса и шифта
 
-
 let lang = 'en';
 let capsOn = false;
 let shiftOn = false;
 
-// const BUTTONS = document.querySelectorAll('.button-keyboard');
-const TEXT_AREA = document.getElementById('text-area');
-
-function addContextByMouse(event) {
-    if (event.target.classList.contains('button-keyboard')) {
-    // TEXT_AREA.textContent += event.target.textContent;
-    }
-
-}
-
-BODY.addEventListener('click', addContextByMouse)
-
-
-
-
-
 // Тестируем обработчик 
 function handlerEvent () {
-
-
-    //Обрабатываем keydown
+    
+    //Нажатие клавиши 
     BODY.addEventListener('keydown', event => {
-        const buttonTest = document.querySelector(`button[data-key=${event.code}]`);
-        console.log(buttonTest);
-        buttonTest.classList.add('button-keyboard-active');
-        switch (event.code) {
-            case 'ControlLeft':
+
+        event.preventDefault();
+        
+
+        const BUTTON = document.querySelector(`button[data-key=${event.code}]`);
+        const TEXT_AREA = document.getElementById('text-area');
+        const TEXT_AREA_CONTEXT = TEXT_AREA.value;
+        const buttonType = BUTTON.getAttribute('data-type');
+        const buttonContext = BUTTON.innerText;
+        const buttonTypeServise = BUTTON.getAttribute('data-key');
+        BUTTON.classList.add('button-keyboard-active');
+
+        if (buttonType === 'letter' || buttonType === 'digit') {
+            TEXT_AREA.value += buttonContext;
+            
+        }
+
+        switch (buttonTypeServise) {
+            case ('ControlLeft' && 'AltLeft'):
                 if (lang === 'ru') {
                     lang = 'en';
-                    // localStorage.setItem('lang', 'en')
                 } else if (lang === 'en') {
-                    lang = 'ru';
-                    // localStorage.setItem('lang', 'ru')
+                    lang = 'ru'
                 }
-                // reMakeKeyboard(buttons);
+                makeNewButtons(KEYS_BUTTON);
+                console.log(lang);
                 break;
+
+            case 'Tab':
+                TEXT_AREA.value += '\t';
+                break;
+
+            case 'Enter':
+                TEXT_AREA.value += '\n';
+                break;
+
             case 'CapsLock':
                 capsOn = !capsOn;
-                // reMakeKeyboard(buttons);
+                makeNewButtons(KEYS_BUTTON);
                 break;
+
             case 'ShiftLeft':
             case 'ShiftRight':
                 shiftOn = !shiftOn;
-                // reMakeKeyboard(buttons);
+                makeNewButtons(KEYS_BUTTON);
                 break;
+
+            case 'Backspace':
+                TEXT_AREA.value = TEXT_AREA_CONTEXT.slice(0, TEXT_AREA.selectionStart - 1) + TEXT_AREA_CONTEXT.slice(TEXT_AREA.selectionStart, TEXT_AREA_CONTEXT.length);
+                break;    
+
+            case 'Space':
+                TEXT_AREA.value += ' ';
+                break;
+                        
             }
         });
 
+    // Отпускание клавиши
     BODY.addEventListener('keyup', event => {
-        const buttonTest = document.querySelector(`button[data-key=${event.code}]`);
-        buttonTest.classList.remove('button-keyboard-active');
-        if (event.code === 'ShiftLeft') {
+        const BUTTON = document.querySelector(`button[data-key=${event.code}]`);
+        BUTTON.classList.remove('button-keyboard-active');
+
+        if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
             shiftOn = !shiftOn;
-            // reMakeKeyboard(buttons);
-        }
-        if (event.code === 'ShiftRight') {
-            shiftOn = !shiftOn;
-            // reMakeKeyboard(buttons);
+            makeNewButtons(KEYS_BUTTON);
         }
     });
-    
+
+    //Нажатие мыши
+    BODY.addEventListener('mousedown', event => {
+        const TEXT_AREA = document.getElementById('text-area');
+        const TEXT_AREA_CONTEXT = TEXT_AREA.value;
+        const buttonPressed = event.target;
+        const buttonType = buttonPressed.getAttribute('data-type');
+        const buttonContext = buttonPressed.innerText;
+        const buttonTypeServise = buttonPressed.getAttribute('data-key');
+        if (buttonType === 'letter' || buttonType === 'digit' || buttonType === 'service') {
+            buttonPressed.classList.add('button-keyboard-active');
+        }
+
+        if (buttonType === 'letter' || buttonType === 'digit') {
+            TEXT_AREA.value += buttonContext;
+        }
+
+        if (buttonType === 'service') {
+            switch (buttonTypeServise) {
+
+                case ('ControlLeft' && 'AltLeft'):
+                    if (lang === 'ru') {
+                        lang = 'en';
+                    } else if (lang === 'en') {
+                        lang = 'ru'
+                    }
+                    makeNewButtons(KEYS_BUTTON);
+                    console.log(lang);
+                    break;
+
+                case 'Tab':
+                    TEXT_AREA.value += '\t';
+                    break;
+
+                case 'Enter':
+                    TEXT_AREA.value += '\n';
+                    break;
+
+                case 'CapsLock':
+                    capsOn = !capsOn;
+                    makeNewButtons(KEYS_BUTTON)
+                    break;
+
+                case 'Backspace':
+                    TEXT_AREA.value = TEXT_AREA_CONTEXT.slice(0, TEXT_AREA.selectionStart - 1) + TEXT_AREA_CONTEXT.slice(TEXT_AREA.selectionStart, TEXT_AREA_CONTEXT.length);
+                    break;
+
+                case 'Delete':
+                    TEXT_AREA.value = TEXT_AREA_CONTEXT.slice(0, TEXT_AREA.selectionStart) + TEXT_AREA_CONTEXT.slice(TEXT_AREA.selectionStart + 1, TEXT_AREA_CONTEXT.length);
+                    break;
+
+                case 'Space':
+                    TEXT_AREA.value += ' ';
+                    break;
+
+                case 'ShiftLeft':
+                case 'ShiftRight':
+                    shiftOn = !shiftOn;
+                    makeNewButtons(KEYS_BUTTON)
+                    break;
+            }
+        }
+    })
+
+    // Отпускание мыши
+    BODY.addEventListener('mouseup', event => {
+        const buttonPressed = event.target;
+        const buttonType = buttonPressed.getAttribute('data-type');
+        const buttonTypeServise = buttonPressed.getAttribute('data-key');
+        if (buttonType === 'letter' || buttonType === 'digit' || buttonType === 'service') {
+            buttonPressed.classList.remove('button-keyboard-active');
+        }
+        if (buttonType === 'service' && buttonTypeServise === 'ShiftLeft' || buttonTypeServise === 'ShiftRight') {
+            shiftOn = !shiftOn;
+            makeNewButtons(KEYS_BUTTON);
+        }
+    })
     
     }
 
-
 handlerEvent()
+
+
+// Рисуем новые клавиши 
+
+function makeNewButtons(test) {
+    test.forEach(element => {
+            const BUTTON = document.querySelector(`button[data-key=${element.key}]`);
+            const TYPE = BUTTON.getAttribute('data-type');
+            if (lang == 'ru' && !capsOn && !shiftOn) {
+                BUTTON.innerText = element.valueRu;
+            } else if (lang == 'ru' && capsOn && !shiftOn && element.type === 'letter') {
+                BUTTON.innerText = element.shiftValueRu;
+            } else if (lang == 'ru' && capsOn && shiftOn) {
+                if (element.type === 'letter') {
+                    BUTTON.innerText = element.valueRu;
+                } else if (element.type === 'digit') {
+                    BUTTON.innerText = element.shiftValueRu;
+                }
+            } else if (lang == 'ru' && shiftOn) {
+                BUTTON.innerText = element.shiftValueRu;
+            }
+            if (lang == 'en' && !capsOn && !shiftOn) {
+                BUTTON.innerText = element.valueEn;
+            } else if (lang == 'en' && capsOn && !shiftOn && element.type === 'letter') {
+                BUTTON.innerText = element.shiftValueEn;
+            } else if (lang == 'en' && capsOn && shiftOn) {
+                if (element.type === 'letter') {
+                    BUTTON.innerText = element.valueEn;
+                } else if (element.type === 'digit') {
+                    BUTTON.innerText = element.shiftValueEn;
+                }
+            } else if (lang == 'en' && shiftOn) {
+                BUTTON.innerText = element.shiftValueEn;
+            }
+        })}
+    
+// makeNewButtons(KEYS_BUTTON)
