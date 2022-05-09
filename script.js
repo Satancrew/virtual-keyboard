@@ -4,6 +4,7 @@ const BODY = document.querySelector('body');
 const HEAD = document.querySelector('head');
 
 
+
 // Добавляем стили
 
 function addCssToHtml() {
@@ -77,13 +78,19 @@ const KEYS_BUTTON = [
     { key: 'MetaLeft', type: 'service', valueEn: 'Win', shiftValueEn: 'Win', valueRu: 'Win', shiftValueRu: 'Win' },
     { key: 'AltLeft', type: 'service', valueEn: 'Alt', shiftValueEn: 'Alt', valueRu: 'Alt', shiftValueRu: 'Alt' },
     { key: 'Space', type: 'service', valueEn: '', shiftValueEn: '', valueRu: '', shiftValueRu: '' },
-    { key: 'AltRight', type: 'letter', valueEn: 'Alt', shiftValueEn: 'Alt', valueRu: 'Alt', shiftValueRu: 'Alt' },
+    { key: 'AltRight', type: 'service', valueEn: 'Alt', shiftValueEn: 'Alt', valueRu: 'Alt', shiftValueRu: 'Alt' },
     { key: 'ArrowLeft', type: 'letter', valueEn: '←', shiftValueEn: '←', valueRu: '←', shiftValueRu: '←' },
     { key: 'ArrowDown', type: 'letter', valueEn: '↓', shiftValueEn: '↓', valueRu: '↓', shiftValueRu: '↓' },
     { key: 'ArrowRight', type: 'letter', valueEn: '→', shiftValueEn: '→', valueRu: '→', shiftValueRu: '→' },
     { key: 'ControlRight', type: 'service', valueEn: 'Ctrl', shiftValueEn: 'Ctrl', valueRu: 'Ctrl', shiftValueRu: 'Ctrl'},
 ];
 
+
+// Метки с флагами языка, капса и шифта
+
+let lang = localStorage.getItem('lang');
+let capsOn = false;
+let shiftOn = false;
 
 // Создаем блок по центру с text-area, клавиатурой и описанием
 
@@ -144,7 +151,7 @@ function startPage() {
             keyboard.appendChild(button);
         } else {
             let button = document.createElement('button');
-            button.textContent = KEYS_BUTTON[i].valueEn;
+            lang === 'ru' ? button.textContent = KEYS_BUTTON[i].valueRu : button.textContent = KEYS_BUTTON[i].valueEn;
             button.classList.add('button-keyboard');
             button.setAttribute('data-key', KEYS_BUTTON[i].key);
             button.setAttribute('data-type', KEYS_BUTTON[i].type);
@@ -162,88 +169,119 @@ function startPage() {
 
 startPage();
 
+const KEYBOARD = document.querySelector('.keyboard');
+// console.log(BUTTONS_KEYBOARD)
 
-// Метки с флагами языка, капса и шифта
-
-let lang = 'en';
-let capsOn = false;
-let shiftOn = false;
 
 // Тестируем обработчик 
 function handlerEvent () {
     
     //Нажатие клавиши 
-    BODY.addEventListener('keydown', event => {
-
-        event.preventDefault();
+    
+        BODY.addEventListener('keydown', event => {
         
+            try {
 
-        const BUTTON = document.querySelector(`button[data-key=${event.code}]`);
-        const TEXT_AREA = document.getElementById('text-area');
-        const TEXT_AREA_CONTEXT = TEXT_AREA.value;
-        const buttonType = BUTTON.getAttribute('data-type');
-        const buttonContext = BUTTON.innerText;
-        const buttonTypeServise = BUTTON.getAttribute('data-key');
-        BUTTON.classList.add('button-keyboard-active');
+                event.preventDefault();
 
-        if (buttonType === 'letter' || buttonType === 'digit') {
-            TEXT_AREA.value += buttonContext;
+                const BUTTON = document.querySelector(`button[data-key=${event.code}]`);
+                const TEXT_AREA = document.getElementById('text-area');
+                const TEXT_AREA_CONTEXT = TEXT_AREA.value;
+                const buttonType = BUTTON.getAttribute('data-type');
+                const buttonContext = BUTTON.innerText;
+                const buttonTypeServise = BUTTON.getAttribute('data-key');
+        
+                BUTTON.classList.add('button-keyboard-active');
             
-        }
-
-        switch (buttonTypeServise) {
-            case ('ControlLeft' && 'AltLeft'):
-                if (lang === 'ru') {
-                    lang = 'en';
-                } else if (lang === 'en') {
-                    lang = 'ru'
+                if (buttonType === 'letter' || buttonType === 'digit') {
+                    TEXT_AREA.value += buttonContext;
+                    
                 }
-                makeNewButtons(KEYS_BUTTON);
-                console.log(lang);
-                break;
+        
+                switch (buttonTypeServise) {
+                    case 'AltLeft':
+                        if (event.ctrlKey) {
+                            if (lang === 'ru') {
+                                lang = 'en';
+                                localStorage.setItem('lang', 'en')
+                            } else if (lang === 'en') {
+                                lang = 'ru'
+                                localStorage.setItem('lang', 'ru')
+                            }
+                        }
+                        makeNewButtons(KEYS_BUTTON);
+                        break;
 
-            case 'Tab':
-                TEXT_AREA.value += '\t';
-                break;
+                    case 'ControlLeft':
+                        if (event.altKey) {
+                            if (lang === 'ru') {
+                                lang = 'en';
+                                localStorage.setItem('lang', 'en')
+                            } else if (lang === 'en') {
+                                lang = 'ru'
+                                localStorage.setItem('lang', 'ru')
+                            }
+                        }
+                        makeNewButtons(KEYS_BUTTON);
+                        break;
 
-            case 'Enter':
-                TEXT_AREA.value += '\n';
-                break;
+                    case 'Tab':
+                        TEXT_AREA.value += '\t';
+                        break;
+        
+                    case 'Enter':
+                        TEXT_AREA.value += '\n';
+                        break;
+        
+                    case 'CapsLock':
+                        capsOn = !capsOn;
+                        makeNewButtons(KEYS_BUTTON);
+                        break;
+        
+                    case 'ShiftLeft':
+                    case 'ShiftRight':
+                        shiftOn = !shiftOn;
+                        makeNewButtons(KEYS_BUTTON);
+                        break;
+        
+                    case 'Backspace':
+                        TEXT_AREA.value = TEXT_AREA_CONTEXT.slice(0, TEXT_AREA.selectionStart - 1) + TEXT_AREA_CONTEXT.slice(TEXT_AREA.selectionStart, TEXT_AREA_CONTEXT.length);
+                        break;    
+        
+                    case 'Space':
+                        TEXT_AREA.value += ' ';
+                        break;
+        
+                    case 'Delete':
+                        TEXT_AREA.value = TEXT_AREA_CONTEXT.slice(0, TEXT_AREA.selectionStart) + TEXT_AREA_CONTEXT.slice(TEXT_AREA.selectionStart + 1, TEXT_AREA_CONTEXT.length);
+                        break;    
+                                
+                    }
 
-            case 'CapsLock':
-                capsOn = !capsOn;
-                makeNewButtons(KEYS_BUTTON);
-                break;
 
-            case 'ShiftLeft':
-            case 'ShiftRight':
-                shiftOn = !shiftOn;
-                makeNewButtons(KEYS_BUTTON);
-                break;
-
-            case 'Backspace':
-                TEXT_AREA.value = TEXT_AREA_CONTEXT.slice(0, TEXT_AREA.selectionStart - 1) + TEXT_AREA_CONTEXT.slice(TEXT_AREA.selectionStart, TEXT_AREA_CONTEXT.length);
-                break;    
-
-            case 'Space':
-                TEXT_AREA.value += ' ';
-                break;
-                        
+            } catch(error) {
+                //Описание ошибки пустое, чтобы в консоль ничего не выводилось
             }
-        });
+
+            }) 
 
     // Отпускание клавиши
     BODY.addEventListener('keyup', event => {
-        const BUTTON = document.querySelector(`button[data-key=${event.code}]`);
-        BUTTON.classList.remove('button-keyboard-active');
-
-        if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
-            shiftOn = !shiftOn;
-            makeNewButtons(KEYS_BUTTON);
+        try {
+            const BUTTON = document.querySelector(`button[data-key=${event.code}]`);
+            BUTTON.classList.remove('button-keyboard-active');
+    
+            if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
+                shiftOn = !shiftOn;
+                makeNewButtons(KEYS_BUTTON);
+            }
+        } catch(error) {
+           //Описание ошибки пустое, чтобы в консоль ничего не выводилось
         }
-    });
 
-    //Нажатие мыши
+    })
+
+    //Нажатие мышкой
     BODY.addEventListener('mousedown', event => {
         const TEXT_AREA = document.getElementById('text-area');
         const TEXT_AREA_CONTEXT = TEXT_AREA.value;
@@ -262,14 +300,30 @@ function handlerEvent () {
         if (buttonType === 'service') {
             switch (buttonTypeServise) {
 
-                case ('ControlLeft' && 'AltLeft'):
-                    if (lang === 'ru') {
-                        lang = 'en';
-                    } else if (lang === 'en') {
-                        lang = 'ru'
+                case 'AltLeft':
+                    if (event.ctrlKey) {
+                        if (lang === 'ru') {
+                            lang = 'en';
+                            localStorage.setItem('lang', 'en')
+                        } else if (lang === 'en') {
+                            lang = 'ru'
+                            localStorage.setItem('lang', 'ru')
+                        }
                     }
                     makeNewButtons(KEYS_BUTTON);
-                    console.log(lang);
+                    break;
+
+                case 'ControlLeft':
+                    if (event.altKey) {
+                        if (lang === 'ru') {
+                            lang = 'en';
+                            localStorage.setItem('lang', 'en')
+                        } else if (lang === 'en') {
+                            lang = 'ru'
+                            localStorage.setItem('lang', 'ru')
+                        }
+                    }
+                    makeNewButtons(KEYS_BUTTON);
                     break;
 
                 case 'Tab':
@@ -306,7 +360,7 @@ function handlerEvent () {
         }
     })
 
-    // Отпускание мыши
+    // Отпускание мышки
     BODY.addEventListener('mouseup', event => {
         const buttonPressed = event.target;
         const buttonType = buttonPressed.getAttribute('data-type');
@@ -327,8 +381,8 @@ handlerEvent()
 
 // Рисуем новые клавиши 
 
-function makeNewButtons(test) {
-    test.forEach(element => {
+function makeNewButtons(newButtons) {
+    newButtons.forEach(element => {
             const BUTTON = document.querySelector(`button[data-key=${element.key}]`);
             const TYPE = BUTTON.getAttribute('data-type');
             if (lang == 'ru' && !capsOn && !shiftOn) {
