@@ -88,7 +88,7 @@ const KEYS_BUTTON = [
 
 // Метки с флагами языка, капса и шифта
 
-let lang = localStorage.getItem('lang');
+let lang = localStorage.getItem('lang') || 'en';
 let capsOn = false;
 let shiftOn = false;
 
@@ -183,7 +183,6 @@ function handlerEvent () {
             try {
 
                 event.preventDefault();
-
                 const BUTTON = document.querySelector(`button[data-key=${event.code}]`);
                 const TEXT_AREA = document.getElementById('text-area');
                 const TEXT_AREA_CONTEXT = TEXT_AREA.value;
